@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <filesystem>
 #include <stdexcept>
+#include<omp.h>
 using namespace std;
 
 // Class to write individual bits into an output stream by packing them into bytes
@@ -161,8 +162,12 @@ int main(int argc,char * argv[]){
 
     // Read the file line by line to calculate character frequencies
     while(getline(infile,s)){
+        #pragma omp parallel for
         for(auto it:s){
-            mp[it]++;
+            #pragma omp critical
+            {
+                mp[it]++;
+            }
         }
         mp['\n']++; // Manually count newline characters since getline removes them
     }
@@ -208,8 +213,12 @@ int main(int argc,char * argv[]){
     string treepath=folderName+"/tree.txt";
     ofstream treeFile(treepath);
     long long charcount=0;
+    #pragma omp parallel for
     for(auto [u,v]:mp){
-        charcount+=v;
+        #pragma omp critical
+        {
+            charcount+=v;
+        }
     }
     treeFile << charcount << endl;
     treeFile << ex << endl;
